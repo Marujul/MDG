@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Belajar kosakata Bahasa Jepang sehari-hari dengan flashcard dan kuis interaktif">
     <title>まいにちのせいかつ - Kehidupan Sehari-hari</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📘</text></svg>">
     <style>
+        /* Gaya Utama */
         body {
             font-family: 'Segoe UI', sans-serif;
             background-color: #fdfaf6;
@@ -61,6 +64,76 @@
         .visible {
             display: block;
         }
+        #intro {
+            text-align: left;
+            max-width: 700px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #fdebd0;
+        }
+        #intro h2 {
+            color: #d2691e;
+            border-bottom: 2px solid #f4b183;
+            padding-bottom: 10px;
+        }
+        #intro p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        /* Flashcard Styles */
+        .flashcard-container {
+            perspective: 1000px;
+            margin: 20px auto;
+            width: 300px;
+            height: 180px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 1.5em;
+        }
+        .flashcard-front {
+            background-color: #fff3e6;
+            color: #d2691e;
+            flex-direction: column;
+        }
+        .flashcard-front .romaji {
+            font-size: 0.7em;
+            color: #333;
+            margin-top: 10px;
+        }
+        .flashcard-back {
+            background-color: #fdebd0;
+            color: #333;
+            transform: rotateY(180deg);
+            font-size: 1.3em;
+        }
+        .flashcard-nav {
+            margin-top: 15px;
+        }
+
+        /* Quiz Styles */
         .question {
             text-align: left;
             margin: 15px auto;
@@ -71,10 +144,10 @@
             border-left: 5px solid #f4b183;
             transition: 0.3s;
         }
-        .question legend {
+        .question p {
             font-weight: bold;
             font-size: 1.1em;
-            margin-bottom: 8px;
+            margin-top: 0;
         }
         .question label {
             display: block;
@@ -86,7 +159,6 @@
         .question label:hover {
             background-color: #fdebd0;
         }
-        /* Gaya untuk umpan balik */
         .question.correct {
             background-color: #e6ffed;
             border-left: 5px solid #4caf50;
@@ -111,118 +183,575 @@
             margin-top: 20px;
         }
         #resetButton {
-            display: none; /* Sembunyi secara default */
+            display: none;
             background-color: #757575;
         }
         #resetButton:hover {
             background-color: #505050;
         }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 85%;
+            height: 10px;
+            background-color: #fdebd0;
+            border-radius: 5px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #f4b183;
+            transition: width 0.3s ease;
+            width: 0;
+        }
+
+        /* Keyboard Shortcuts */
+        .keyboard-shortcuts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            display: none;
+            z-index: 1000;
+        }
+        .keyboard-shortcuts.visible {
+            display: block;
+        }
+
+        /* New styles for enhanced content */
+        .grammar-section, .dialog-section {
+            text-align: left;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #fdebd0;
+        }
+        
+        .grammar-section h3, .dialog-section h3 {
+            color: #d2691e;
+            border-bottom: 2px solid #f4b183;
+            padding-bottom: 10px;
+        }
+        
+        .pattern-example {
+            background-color: #fff9f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #f4b183;
+        }
+        
+        .pattern-example .japanese {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d2691e;
+        }
+        
+        .pattern-example .romaji {
+            font-style: italic;
+            color: #666;
+        }
+        
+        .dialog-example {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .dialog-line {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .dialog-line:nth-child(odd) {
+            background-color: #e9ecef;
+        }
+        
+        .dialog-speaker {
+            font-weight: bold;
+            color: #d2691e;
+        }
+        
+        /* Practice sentences section */
+        .practice-sentence {
+            background-color: #f0f7ff;
+            border-left: 4px solid #4dabf7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .practice-sentence .japanese {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #1864ab;
+        }
+        
+        .practice-sentence .translation {
+            color: #495057;
+            margin-top: 5px;
+        }
+        
+        /* Enhanced flashcard styles */
+        .flashcard-container.enhanced {
+            width: 350px;
+            height: 220px;
+        }
+        
+        .flashcard.enhanced {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .flashcard-front.enhanced, .flashcard-back.enhanced {
+            font-size: 1.4em;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .flashcard-front.enhanced .example {
+            font-size: 0.7em;
+            margin-top: 10px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Feedback animations */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+        
+        .feedback {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            z-index: 1000;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feedback.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .feedback.error {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        /* Quiz timer */
+        #quiz-timer {
+            font-family: monospace;
+            font-size: 1.2em;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        /* Streak message */
+        .streak-message {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 1rem 0;
+            animation: slideIn 0.5s ease-out;
+            display: inline-block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Animation for celebration */
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .celebrate {
+            animation: celebrate 0.5s ease;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            .question, #intro, .grammar-section, .dialog-section {
+                background-color: #2d2d2d;
+                border-color: #404040;
+            }
+            
+            .flashcard-front {
+                background-color: #2d2d2d;
+                color: #f4b183;
+            }
+            
+            .flashcard-back {
+                background-color: #404040;
+                color: #e0e0e0;
+            }
+            
+            th {
+                background-color: #404040;
+            }
+            
+            td {
+                border-color: #404040;
+            }
+
+            .progress-bar {
+                background-color: #404040;
+            }
+            
+            .pattern-example {
+                background-color: #3a3a3a;
+                border-left-color: #f4b183;
+            }
+            
+            .pattern-example .japanese {
+                color: #f4b183;
+            }
+            
+            .dialog-example {
+                background-color: #2d2d2d;
+                border-color: #404040;
+            }
+            
+            .dialog-line:nth-child(odd) {
+                background-color: #404040;
+            }
+            
+            .practice-sentence {
+                background-color: #1e3a5f;
+                border-left-color: #4dabf7;
+            }
+            
+            .practice-sentence .japanese {
+                color: #a5d8ff;
+            }
+            
+            #quiz-timer {
+                background-color: #404040;
+                color: #e0e0e0;
+            }
+        }
     </style>
 </head>
 <body>
-
     <header>
         <h1>まいにちのせいかつ</h1>
         <p>Kehidupan Sehari-hari – Belajar Bahasa Jepang</p>
     </header>
 
     <nav>
+        <button onclick="showSection('intro')">🏠 Beranda</button>
         <button onclick="showSection('materi')">📘 Materi</button>
+        <button onclick="showSection('tata-bahasa')">📚 Tata Bahasa</button>
+        <button onclick="showSection('flashcard')">📇 Flashcard</button>
         <button onclick="showSection('latihan')">📝 Latihan Soal</button>
     </nav>
 
-    <section id="materi" class="visible">
+    <section id="intro" class="visible">
+        <h2>Selamat Datang! (ようこそ！)</h2>
+        <p>Halaman ini dirancang untuk membantu Anda mempelajari kosakata bahasa Jepang dasar yang berkaitan dengan "Kehidupan Sehari-hari" (まいにちのせいかつ).</p>
+        <p>Anda dapat menggunakan menu di atas untuk:</p>
+        <ul>
+            <li><strong>📘 Materi:</strong> Melihat daftar lengkap kosakata, romaji, dan artinya.</li>
+            <li><strong>📚 Tata Bahasa:</strong> Mempelajari pola kalimat dan contoh dialog.</li>
+            <li><strong>📇 Flashcard:</strong> Menguji ingatan Anda dengan kartu bolak-balik.</li>
+            <li><strong>📝 Latihan Soal:</strong> Mengerjakan kuis pilihan ganda untuk mengukur pemahaman Anda.</li>
+        </ul>
+        <p>Pilih salah satu bagian untuk memulai. がんばってください！ (Ganbatte kudasai! - Semangat!)</p>
+    </section>
+
+    <section id="materi">
         <h2>📖 Kosakata Kegiatan Sehari-hari</h2>
+        <button id="printMateriButton" style="margin-bottom: 20px;">🖨️ Cetak Materi</button>
         <table>
-            <tr><th>日本語</th><th>Romaji</th><th>Arti</th></tr>
-            <tr><td>おきます</td><td>okimasu</td><td>Bangun tidur</td></tr>
-            <tr><td>はをみがきます</td><td>ha o migakimasu</td><td>Menggosok gigi</td></tr>
-            <tr><td>かおをあらいます</td><td>kao o araimasu</td><td>Mencuci muka</td></tr>
-            <tr><td>あさごはんをたべます</td><td>asagohan o tabemasu</td><td>Makan pagi</td></tr>
-            <tr><td>がっこうへいきます</td><td>gakkō e ikimasu</td><td>Pergi ke sekolah</td></tr>
-            <tr><td>べんきょうします</td><td>benkyō shimasu</td><td>Belajar</td></tr>
-            <tr><td>ひるごはんをたべます</td><td>hirugohan o tabemasu</td><td>Makan siang</td></tr>
-            <tr><td>ともだちとあそびます</td><td>tomodachi to asobimasu</td><td>Bermain dengan teman</td></tr>
-            <tr><td>ばんごはんをたべます</td><td>bangohan o tabemasu</td><td>Makan malam</td></tr>
-            <tr><td>おふろにはいります</td><td>ofuro ni hairimasu</td><td>Mandi</td></tr>
-            <tr><td>テレビをみます</td><td>terebi o mimasu</td><td>Menonton TV</td></tr>
-            <tr><td>ねます</td><td>nemasu</td><td>Tidur</td></tr>
+            <thead>
+                <tr><th>日本語</th><th>Romaji</th><th>Arti</th></tr>
+            </thead>
+            <tbody id="materi-body"></tbody>
         </table>
+    </section>
+
+    <section id="tata-bahasa">
+        <h2>📚 Tata Bahasa dan Pola Kalimat</h2>
+        <button id="printGrammarButton" style="margin-bottom: 20px;">🖨️ Cetak Tata Bahasa</button>
+        
+        <div class="grammar-section">
+            <h3>Pola Kalimat Dasar</h3>
+            <p>Dalam bahasa Jepang, pola kalimat dasar untuk kegiatan sehari-hari sering menggunakan bentuk <strong>-masu</strong> (bentuk sopan).</p>
+            
+            <div class="pattern-example">
+                <p><strong>Pola: Subjek + Partikel + Kata Kerja (-masu)</strong></p>
+                <div class="japanese">わたしは がっこうへ いきます。</div>
+                <div class="romaji">Watashi wa gakkō e ikimasu.</div>
+                <div>Arti: Saya pergi ke sekolah.</div>
+            </div>
+            
+            <div class="pattern-example">
+                <p><strong>Pola: Waktu + Partikel + Kegiatan</strong></p>
+                <div class="japanese">あさ 7じに おきます。</div>
+                <div class="romaji">Asa shichi-ji ni okimasu.</div>
+                <div>Arti: Saya bangun tidur jam 7 pagi.</div>
+            </div>
+            
+            <div class="pattern-example">
+                <p><strong>Pola: Kata Benda + を + Kata Kerja</strong></p>
+                <div class="japanese">あさごはんを たべます。</div>
+                <div class="romaji">Asagohan o tabemasu.</div>
+                <div>Arti: Saya makan sarapan.</div>
+            </div>
+        </div>
+        
+        <div class="grammar-section">
+            <h3>Partikel Penting</h3>
+            <table>
+                <thead>
+                    <tr><th>Partikel</th><th>Penggunaan</th><th>Contoh</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>は (wa)</td>
+                        <td>Penanda topik kalimat</td>
+                        <td>わたし<strong>は</strong> がくせい です。 (Saya adalah pelajar)</td>
+                    </tr>
+                    <tr>
+                        <td>を (o)</td>
+                        <td>Penanda objek langsung</td>
+                        <td>ごはん<strong>を</strong> たべます。 (Makan nasi)</td>
+                    </tr>
+                    <tr>
+                        <td>に (ni)</td>
+                        <td>Penanda waktu/tempat tujuan</td>
+                        <td>7じ<strong>に</strong> おきます。 (Bangun jam 7)</td>
+                    </tr>
+                    <tr>
+                        <td>へ (e)</td>
+                        <td>Penanda arah/tujuan</td>
+                        <td>がっこう<strong>へ</strong> いきます。 (Pergi ke sekolah)</td>
+                    </tr>
+                    <tr>
+                        <td>で (de)</td>
+                        <td>Penanda tempat kegiatan</td>
+                        <td>きょうしつ<strong>で</strong> べんきょうします。 (Belajar di kelas)</td>
+                    </tr>
+                    <tr>
+                        <td>と (to)</td>
+                        <td>Penanda "dengan"</td>
+                        <td>ともだち<strong>と</strong> あそびます。 (Bermain dengan teman)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="dialog-section">
+            <h3>Contoh Dialog Sehari-hari</h3>
+            
+            <div class="dialog-example">
+                <p><strong>Dialog 1: Pagi Hari</strong></p>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">おはようございます。おきましたか。</span><br>
+                    <span class="romaji">Ohayō gozaimasu. Okimashita ka?</span><br>
+                    <span>Arti: Selamat pagi. Apakah kamu sudah bangun?</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">B:</span> <span class="japanese">はい、おきました。かおを あらって、はを みがきました。</span><br>
+                    <span class="romaji">Hai, okimashita. Kao o aratte, ha o migakimashita.</span><br>
+                    <span>Arti: Ya, sudah bangun. Saya sudah mencuci muka dan menggosok gigi.</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">じゃ、あさごはんを たべましょう。</span><br>
+                    <span class="romaji">Ja, asagohan o tabemashō.</span><br>
+                    <span>Arti: Kalau begitu, mari kita makan sarapan.</span>
+                </div>
+            </div>
+            
+            <div class="dialog-example">
+                <p><strong>Dialog 2: Berangkat Sekolah</strong></p>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">いま、なんじ ですか。</span><br>
+                    <span class="romaji">Ima, nan-ji desu ka?</span><br>
+                    <span>Arti: Sekarang jam berapa?</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">B:</span> <span class="japanese">7じはんです。</span><br>
+                    <span class="romaji">Shichi-ji han desu.</span><br>
+                    <span>Arti: Jam setengah delapan.</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">がっこうへ いきましょう。</span><br>
+                    <span class="romaji">Gakkō e ikimashō.</span><br>
+                    <span>Arti: Mari kita pergi ke sekolah.</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">B:</span> <span class="japanese">はい、いきましょう。</span><br>
+                    <span class="romaji">Hai, ikimashō.</span><br>
+                    <span>Arti: Ya, mari kita pergi.</span>
+                </div>
+            </div>
+            
+            <div class="dialog-example">
+                <p><strong>Dialog 3: Setelah Pulang Sekolah</strong></p>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">きょう、なにを しましたか。</span><br>
+                    <span class="romaji">Kyō, nani o shimashita ka?</span><br>
+                    <span>Arti: Hari ini kamu melakukan apa?</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">B:</span> <span class="japanese">がっこうで べんきょうしました。それから、ともだちと あそびました。</span><br>
+                    <span class="romaji">Gakkō de benkyō shimashita. Sore kara, tomodachi to asobimashita.</span><br>
+                    <span>Arti: Saya belajar di sekolah. Setelah itu, saya bermain dengan teman.</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">A:</span> <span class="japanese">そうですか。じゃ、ばんごはんの あとで テレビを みますか。</span><br>
+                    <span class="romaji">Sō desu ka. Ja, bangohan no ato de terebi o mimasu ka?</span><br>
+                    <span>Arti: Begitu ya. Kalau begitu, apakah kamu akan menonton TV setelah makan malam?</span>
+                </div>
+                <div class="dialog-line">
+                    <span class="dialog-speaker">B:</span> <span class="japanese">はい、みます。それから、おふろに はいって、ねます。</span><br>
+                    <span class="romaji">Hai, mimasu. Sore kara, ofuro ni haitte, nemasu.</span><br>
+                    <span>Arti: Ya, saya akan menonton. Setelah itu, saya akan mandi dan tidur.</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Practice sentences will be added here by JavaScript -->
+    </section>
+
+    <section id="flashcard">
+        <h2>📇 Flashcard</h2>
+        <p>Klik kartu untuk membalik, gunakan tombol atau ← → untuk navigasi</p>
+        
+        <div class="flashcard-container enhanced">
+            <div class="flashcard enhanced" id="flashcard" onclick="this.classList.toggle('is-flipped')" role="button" tabindex="0" aria-pressed="false">
+                <div class="flashcard-face flashcard-front enhanced">
+                    <span id="flashcard-jp"></span>
+                    <span id="flashcard-romaji" class="romaji"></span>
+                    <div id="flashcard-example" class="example"></div>
+                </div>
+                <div class="flashcard-face flashcard-back enhanced">
+                    <span id="flashcard-arti"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flashcard-nav">
+            <button onclick="prevCard()">← Sebelumnya</button>
+            <button onclick="nextCard()">Berikutnya →</button>
+        </div>
+        <p id="card-counter"></p>
     </section>
 
     <section id="latihan">
         <h2>🧠 Latihan Soal Pilihan Ganda</h2>
+        <div id="quiz-timer">Waktu: 0:00</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
 
         <form id="quizForm">
-            <fieldset class="question" data-q="q1">
-                <legend>1. おきます</legend>
-                <label><input type="radio" name="q1" value="a"> a. Tidur</label>
-                <label><input type="radio" name="q1" value="b"> b. Bangun tidur</label>
+            <div class="question" data-id="1">
+                <p>1. おきます</p>
+                <label><input type="radio" name="q1" value="a"> a. Tidur</label><br>
+                <label><input type="radio" name="q1" value="b"> b. Bangun tidur</label><br>
                 <label><input type="radio" name="q1" value="c"> c. Belajar</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q2">
-                <legend>2. はをみがきます</legend>
-                <label><input type="radio" name="q2" value="a"> a. Menggosok gigi</label>
-                <label><input type="radio" name="q2" value="b"> b. Makan pagi</label>
+            <div class="question" data-id="2">
+                <p>2. はをみがきます</p>
+                <label><input type="radio" name="q2" value="a"> a. Menggosok gigi</label><br>
+                <label><input type="radio" name="q2" value="b"> b. Makan pagi</label><br>
                 <label><input type="radio" name="q2" value="c"> c. Pergi ke sekolah</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q3">
-                <legend>3. べんきょうします</legend>
-                <label><input type="radio" name="q3" value="a"> a. Belajar</label>
-                <label><input type="radio" name="q3" value="b"> b. Tidur</label>
+            <div class="question" data-id="3">
+                <p>3. べんきょうします</p>
+                <label><input type="radio" name="q3" value="a"> a. Belajar</label><br>
+                <label><input type="radio" name="q3" value="b"> b. Tidur</label><br>
                 <label><input type="radio" name="q3" value="c"> c. Mandi</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q4">
-                <legend>4. がっこうへいきます</legend>
-                <label><input type="radio" name="q4" value="a"> a. Pergi ke sekolah</label>
-                <label><input type="radio" name="q4" value="b"> b. Belajar</label>
+            <div class="question" data-id="4">
+                <p>4. がっこうへいきます</p>
+                <label><input type="radio" name="q4" value="a"> a. Pergi ke sekolah</label><br>
+                <label><input type="radio" name="q4" value="b"> b. Belajar</label><br>
                 <label><input type="radio" name="q4" value="c"> c. Makan malam</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q5">
-                <legend>5. おふろにはいります</legend>
-                <label><input type="radio" name="q5" value="a"> a. Mandi</label>
-                <label><input type="radio" name="q5" value="b"> b. Makan</label>
+            <div class="question" data-id="5">
+                <p>5. おふろにはいります</p>
+                <label><input type="radio" name="q5" value="a"> a. Mandi</label><br>
+                <label><input type="radio" name="q5" value="b"> b. Makan</label><br>
                 <label><input type="radio" name="q5" value="c"> c. Menonton TV</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q6">
-                <legend>6. ねます</legend>
-                <label><input type="radio" name="q6" value="a"> a. Tidur</label>
-                <label><input type="radio" name="q6" value="b"> b. Bangun tidur</label>
+            <div class="question" data-id="6">
+                <p>6. ねます</p>
+                <label><input type="radio" name="q6" value="a"> a. Tidur</label><br>
+                <label><input type="radio" name="q6" value="b"> b. Bangun tidur</label><br>
                 <label><input type="radio" name="q6" value="c"> c. Belajar</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q7">
-                <legend>7. かおをあらいます</legend>
-                <label><input type="radio" name="q7" value="a"> a. Mencuci muka</label>
-                <label><input type="radio" name="q7" value="b"> b. Menggosok gigi</label>
+            <div class="question" data-id="7">
+                <p>7. かおをあらいます</p>
+                <label><input type="radio" name="q7" value="a"> a. Mencuci muka</label><br>
+                <label><input type="radio" name="q7" value="b"> b. Menggosok gigi</label><br>
                 <label><input type="radio" name="q7" value="c"> c. Makan siang</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q8">
-                <legend>8. テレビをみます</legend>
-                <label><input type="radio" name="q8" value="a"> a. Menonton TV</label>
-                <label><input type="radio" name="q8" value="b"> b. Membaca buku</label>
+            <div class="question" data-id="8">
+                <p>8. テレビをみます</p>
+                <label><input type="radio" name="q8" value="a"> a. Menonton TV</label><br>
+                <label><input type="radio" name="q8" value="b"> b. Membaca buku</label><br>
                 <label><input type="radio" name="q8" value="c"> c. Pergi ke sekolah</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q9">
-                <legend>9. ひるごはんをたべます</legend>
-                <label><input type="radio" name="q9" value="a"> a. Makan pagi</label>
-                <label><input type="radio" name="q9" value="b"> b. Makan siang</label>
+            <div class="question" data-id="9">
+                <p>9. ひるごはんをたべます</p>
+                <label><input type="radio" name="q9" value="a"> a. Makan pagi</label><br>
+                <label><input type="radio" name="q9" value="b"> b. Makan siang</label><br>
                 <label><input type="radio" name="q9" value="c"> c. Makan malam</label>
-            </fieldset>
+            </div>
 
-            <fieldset class="question" data-q="q10">
-                <legend>10. ともだちとあそびます</legend>
-                <label><input type="radio" name="q10" value="a"> a. Bermain dengan teman</label>
-                <label><input type="radio" name="q10" value="b"> b. Belajar</label>
+            <div class="question" data-id="10">
+                <p>10. ともだちとあそびます</p>
+                <label><input type="radio" name="q10" value="a"> a. Bermain dengan teman</label><br>
+                <label><input type="radio" name="q10" value="b"> b. Belajar</label><br>
                 <label><input type="radio" name="q10" value="c"> c. Pergi tidur</label>
-            </fieldset>
+            </div>
 
             <button type="button" onclick="checkAnswers()" id="submitButton">Lihat Nilai</button>
             <button type="button" onclick="resetQuiz()" id="resetButton">Coba Lagi</button>
@@ -231,70 +760,268 @@
         <div id="score" aria-live="polite"></div>
     </section>
 
+    <div class="keyboard-shortcuts">
+        Keyboard: ← → (navigasi) | Space (balik kartu) | 1-5 (menu)
+    </div>
+
     <script>
+        // --- Enhanced Data Kosakata ---
+        const enhancedVocabulary = [
+            { 
+                jp: "おきます", 
+                romaji: "okimasu", 
+                arti: "Bangun tidur",
+                example: "あさ 7じに おきます。 (Bangun jam 7 pagi)"
+            },
+            { 
+                jp: "はをみがきます", 
+                romaji: "ha o migakimasu", 
+                arti: "Menggosok gigi",
+                example: "あさごはんの まえに はを みがきます。 (Menggosok gigi sebelum sarapan)"
+            },
+            { 
+                jp: "かおをあらいます", 
+                romaji: "kao o araimasu", 
+                arti: "Mencuci muka",
+                example: "おきたあとで かおを あらいます。 (Mencuci muka setelah bangun)"
+            },
+            { 
+                jp: "あさごはんをたべます", 
+                romaji: "asagohan o tabemasu", 
+                arti: "Makan pagi",
+                example: "あさごはんを たべてから がっこうへ いきます。 (Pergi ke sekolah setelah makan pagi)"
+            },
+            { 
+                jp: "がっこうへいきます", 
+                romaji: "gakkō e ikimasu", 
+                arti: "Pergi ke sekolah",
+                example: "8じに がっこうへ いきます。 (Pergi ke sekolah jam 8)"
+            },
+            { 
+                jp: "べんきょうします", 
+                romaji: "benkyō shimasu", 
+                arti: "Belajar",
+                example: "まいばん 2じかん べんきょうします。 (Belajar 2 jam setiap malam)"
+            },
+            { 
+                jp: "ひるごはんをたべます", 
+                romaji: "hirugohan o tabemasu", 
+                arti: "Makan siang",
+                example: "ひるごはんを がっこうで たべます。 (Makan siang di sekolah)"
+            },
+            { 
+                jp: "ともだちとあそびます", 
+                romaji: "tomodachi to asobimasu", 
+                arti: "Bermain dengan teman",
+                example: "がっこうの あとで ともだちと あそびます。 (Bermain dengan teman setelah sekolah)"
+            },
+            { 
+                jp: "ばんごはんをたべます", 
+                romaji: "bangohan o tabemasu", 
+                arti: "Makan malam",
+                example: "かぞくと ばんごはんを たべます。 (Makan malam dengan keluarga)"
+            },
+            { 
+                jp: "おふろにはいります", 
+                romaji: "ofuro ni hairimasu", 
+                arti: "Mandi",
+                example: "ばんごはんの まえに おふろに はいります。 (Mandi sebelum makan malam)"
+            },
+            { 
+                jp: "テレビをみます", 
+                romaji: "terebi o mimasu", 
+                arti: "Menonton TV",
+                example: "ばんごはんの あとで テレビを みます。 (Menonton TV setelah makan malam)"
+            },
+            { 
+                jp: "ねます", 
+                romaji: "nemasu", 
+                arti: "Tidur",
+                example: "よる 10じに ねます。 (Tidur jam 10 malam)"
+            }
+        ];
+
+        const vocabulary = enhancedVocabulary;
+
+        // --- Variabel Global ---
+        let currentCardIndex = 0;
+        let quizStartTime;
+        let quizTimer;
+        let streak = parseInt(localStorage.getItem('streak') || '0');
+        let lastVisit = localStorage.getItem('lastVisit');
+
+        // --- Fungsi Navigasi ---
         function showSection(id) {
-            document.getElementById('materi').classList.remove('visible');
-            document.getElementById('latihan').classList.remove('visible');
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('visible');
+            });
             document.getElementById(id).classList.add('visible');
+            
+            if (id === 'latihan') {
+                updateProgressBar();
+                startQuizTimer();
+            }
+            
+            // Simpan bagian yang sedang dilihat
+            saveProgress();
         }
 
+        // --- Fungsi Flashcard ---
+        function showFlashcard(index) {
+            const card = vocabulary[index];
+            document.getElementById('flashcard-jp').textContent = card.jp;
+            document.getElementById('flashcard-romaji').textContent = card.romaji;
+            document.getElementById('flashcard-arti').textContent = card.arti;
+            document.getElementById('card-counter').textContent = `${index + 1} / ${vocabulary.length}`;
+            
+            // Tambahkan contoh kalimat jika tersedia
+            if (card.example) {
+                let exampleElement = document.getElementById('flashcard-example');
+                if (!exampleElement) {
+                    exampleElement = document.createElement('div');
+                    exampleElement.id = 'flashcard-example';
+                    exampleElement.className = 'example';
+                    document.querySelector('.flashcard-front').appendChild(exampleElement);
+                }
+                exampleElement.textContent = card.example;
+            }
+            
+            document.getElementById('flashcard').classList.remove('is-flipped');
+        }
+
+        function nextCard() {
+            currentCardIndex = (currentCardIndex + 1) % vocabulary.length;
+            showFlashcard(currentCardIndex);
+            saveProgress();
+        }
+
+        function prevCard() {
+            currentCardIndex = (currentCardIndex - 1 + vocabulary.length) % vocabulary.length;
+            showFlashcard(currentCardIndex);
+            saveProgress();
+        }
+
+        // --- Fungsi Materi ---
+        function populateMateriTable() {
+            const tableBody = document.getElementById('materi-body');
+            vocabulary.forEach(item => {
+                const row = `<tr>
+                    <td>${item.jp}</td>
+                    <td>${item.romaji}</td>
+                    <td>${item.arti}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // --- Fungsi Quiz ---
         const correctAnswers = {
             q1: "b", q2: "a", q3: "a", q4: "a", q5: "a",
             q6: "a", q7: "a", q8: "a", q9: "b", q10: "a"
         };
 
+        function updateProgressBar() {
+            const total = document.querySelectorAll('.question').length;
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            const progressFill = document.querySelector('.progress-fill');
+            progressFill.style.width = `${(answered / total) * 100}%`;
+        }
+
+        function startQuizTimer() {
+            // Hanya mulai timer jika belum berjalan
+            if (quizTimer) return;
+            
+            quizStartTime = Date.now();
+            quizTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('quiz-timer').textContent = 
+                    `Waktu: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopQuizTimer() {
+            if (quizTimer) {
+                clearInterval(quizTimer);
+                quizTimer = null;
+                return Math.floor((Date.now() - quizStartTime) / 1000);
+            }
+            return 0;
+        }
+
         function checkAnswers() {
-            const allQuestions = document.querySelectorAll('.question');
             resetStyles();
             let score = 0;
-
-            allQuestions.forEach((questionDiv) => {
-                const qName = questionDiv.dataset.q; // use data-q to map questions
-                const selected = document.querySelector('input[name="' + qName + '"]:checked');
-
+            
+            document.querySelectorAll('.question').forEach(questionDiv => {
+                const id = questionDiv.getAttribute('data-id');
+                const qName = `q${id}`;
+                const selected = document.querySelector(`input[name="${qName}"]:checked`);
+                
                 if (selected) {
                     if (selected.value === correctAnswers[qName]) {
                         score++;
                         questionDiv.classList.add('correct');
+                        questionDiv.classList.add('celebrate');
+                        setTimeout(() => questionDiv.classList.remove('celebrate'), 500);
                     } else {
                         questionDiv.classList.add('incorrect');
-                        const correctInput = document.querySelector('input[name="' + qName + '"][value="' + correctAnswers[qName] + '"]');
-                        if (correctInput && correctInput.parentElement) {
-                            correctInput.parentElement.classList.add('correct-answer');
-                        }
+                        const correctLabel = document.querySelector(`input[name="${qName}"][value="${correctAnswers[qName]}"]`).parentElement;
+                        correctLabel.classList.add('correct-answer');
                     }
                 } else {
                     questionDiv.classList.add('incorrect');
-                    const correctInput = document.querySelector('input[name="' + qName + '"][value="' + correctAnswers[qName] + '"]');
-                    if (correctInput && correctInput.parentElement) {
-                        correctInput.parentElement.classList.add('correct-answer');
-                    }
+                    const correctLabel = document.querySelector(`input[name="${qName}"][value="${correctAnswers[qName]}"]`).parentElement;
+                    correctLabel.classList.add('correct-answer');
                 }
             });
 
-            const scoreEl = document.getElementById("score");
-            scoreEl.innerHTML = "Nilai kamu: " + score + "/10";
-
-            // optional short feedback message
-            if (score >= 8) {
-                scoreEl.innerHTML += " — Bagus sekali! 🎉";
+            const timeSpent = stopQuizTimer();
+            const minutes = Math.floor(timeSpent / 60);
+            const seconds = timeSpent % 60;
+            
+            let feedback = '';
+            if (score === 10) {
+                feedback = 'すごい！(Sugoi!) Sempurna! 🎉';
+                if (timeSpent < 120) {
+                    feedback += '<br>🏆 Kecepatan Sempurna!';
+                }
+            } else if (score >= 8) {
+                feedback = 'とてもいいですね！(Totemo ii desu ne!) Sangat bagus! 🌟';
             } else if (score >= 5) {
-                scoreEl.innerHTML += " — Lumayan, coba lagi ya!";
+                feedback = 'がんばって！(Ganbatte!) Ayo semangat, coba lagi! 💪';
             } else {
-                scoreEl.innerHTML += " — Ayo latihan lagi!";
+                feedback = 'もういちど！(Mou ichido!) Mari coba sekali lagi! 📚';
             }
 
+            feedback += `<br>Waktu: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById("score").innerHTML = `Nilai kamu: ${score}/10<br>${feedback}`;
+            
+            // Tampilkan feedback
+            if (score < 10) {
+                showFeedback('error', `Kamu menjawab ${score} dari 10 soal dengan benar`);
+            } else {
+                showFeedback('success', 'Sempurna! Semua jawaban benar!');
+            }
+            
             document.getElementById('submitButton').disabled = true;
-            document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => radio.disabled = true);
-
+            document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => {
+                radio.disabled = true;
+            });
+            
             document.getElementById('resetButton').style.display = 'inline-block';
+            
+            // Simpan progress
+            saveProgress();
         }
 
         function resetStyles() {
             document.querySelectorAll('.question').forEach(questionDiv => {
-                questionDiv.classList.remove('correct', 'incorrect');
+                questionDiv.classList.remove('correct', 'incorrect', 'celebrate');
             });
-
+            
             document.querySelectorAll('.correct-answer').forEach(label => {
                 label.classList.remove('correct-answer');
             });
@@ -305,13 +1032,215 @@
             document.getElementById('quizForm').reset();
             document.getElementById("score").innerHTML = "";
             document.getElementById('submitButton').disabled = false;
-            document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => radio.disabled = false);
+            document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => {
+                radio.disabled = false;
+            });
             document.getElementById('resetButton').style.display = 'none';
+            updateProgressBar();
+            
+            // Reset timer
+            stopQuizTimer();
+            document.getElementById('quiz-timer').textContent = 'Waktu: 0:00';
         }
 
-        // Materi ditampilkan secara default saat halaman dimuat
-        document.getElementById('materi').classList.add('visible');
-    </script>
+        // --- Fitur Tambahan ---
+        
+        // Simpan progress ke localStorage
+        function saveProgress() {
+            const progress = {
+                lastCard: currentCardIndex,
+                quizAnswers: Array.from(document.querySelectorAll('input[type="radio"]:checked')).map(input => ({
+                    name: input.name,
+                    value: input.value
+                })),
+                lastSection: document.querySelector('section.visible').id
+            };
+            localStorage.setItem('japaneseQuizProgress', JSON.stringify(progress));
+        }
 
+        function loadProgress() {
+            const saved = localStorage.getItem('japaneseQuizProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                if (progress.lastCard !== undefined) {
+                    currentCardIndex = progress.lastCard;
+                    showFlashcard(currentCardIndex);
+                }
+                if (progress.quizAnswers) {
+                    progress.quizAnswers.forEach(answer => {
+                        const input = document.querySelector(`input[name="${answer.name}"][value="${answer.value}"]`);
+                        if (input) input.checked = true;
+                    });
+                    updateProgressBar();
+                }
+                if (progress.lastSection) {
+                    showSection(progress.lastSection);
+                }
+            }
+        }
+
+        // Update streak
+        function updateStreak() {
+            const today = new Date().toDateString();
+            if (lastVisit !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                if (lastVisit === yesterday) {
+                    streak++;
+                } else {
+                    streak = 1;
+                }
+                localStorage.setItem('streak', streak.toString());
+                localStorage.setItem('lastVisit', today);
+                
+                if (streak > 1) {
+                    const streakMsg = document.createElement('div');
+                    streakMsg.className = 'streak-message';
+                    streakMsg.innerHTML = `🔥 ${streak} hari berturut-turut! がんばっています！`;
+                    document.querySelector('header').appendChild(streakMsg);
+                }
+            }
+        }
+
+        // Tampilkan feedback
+        function showFeedback(type, message) {
+            const feedback = document.createElement('div');
+            feedback.className = `feedback ${type}`;
+            feedback.textContent = message;
+            feedback.setAttribute('role', 'alert');
+            feedback.style.animation = 'fadeInOut 2s forwards';
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 2000);
+        }
+
+        // Generate kalimat latihan
+        function generatePracticeSentences() {
+            const practiceSection = document.createElement('div');
+            practiceSection.className = 'grammar-section';
+            practiceSection.innerHTML = '<h3>Latihan Membuat Kalimat</h3>';
+            
+            const sentences = [
+                {
+                    jp: "あさ 7じに おきて、かおを あらいます。",
+                    translation: "Saya bangun jam 7 pagi dan mencuci muka."
+                },
+                {
+                    jp: "がっこうで ともだちと べんきょうします。",
+                    translation: "Saya belajar dengan teman di sekolah."
+                },
+                {
+                    jp: "ばんごはんの あとで テレビを みます。",
+                    translation: "Saya menonton TV setelah makan malam."
+                }
+            ];
+            
+            sentences.forEach(sentence => {
+                const sentenceElement = document.createElement('div');
+                sentenceElement.className = 'practice-sentence';
+                sentenceElement.innerHTML = `
+                    <div class="japanese">${sentence.jp}</div>
+                    <div class="translation">${sentence.translation}</div>
+                `;
+                practiceSection.appendChild(sentenceElement);
+            });
+            
+            // Tambahkan ke bagian Tata Bahasa
+            const tataBahasaSection = document.getElementById('tata-bahasa');
+            if (tataBahasaSection) {
+                tataBahasaSection.appendChild(practiceSection);
+            }
+        }
+
+        // --- Navigasi Keyboard ---
+        document.addEventListener('keydown', (e) => {
+            const currentSection = document.querySelector('section.visible').id;
+            
+            if (currentSection === 'flashcard') {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        prevCard();
+                        break;
+                    case 'ArrowRight':
+                        nextCard();
+                        break;
+                    case ' ':
+                        document.getElementById('flashcard').classList.toggle('is-flipped');
+                        e.preventDefault();
+                        break;
+                    case 'ArrowUp':
+                    case 'ArrowDown':
+                        document.getElementById('flashcard').classList.toggle('is-flipped');
+                        e.preventDefault();
+                        break;
+                }
+            }
+            
+            // Tombol angka untuk navigasi
+            if (['1', '2', '3', '4', '5'].includes(e.key)) {
+                const sections = ['intro', 'materi', 'tata-bahasa', 'flashcard', 'latihan'];
+                showSection(sections[parseInt(e.key) - 1]);
+            }
+
+            // Tampilkan/sembunyikan shortcut keyboard
+            if (e.key === '?') {
+                document.querySelector('.keyboard-shortcuts').classList.toggle('visible');
+            }
+        });
+
+        // --- Pelacakan Progress Kuis ---
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                updateProgressBar();
+                saveProgress();
+            });
+        });
+
+        // --- Inisialisasi Halaman ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Isi konten
+            populateMateriTable();
+            
+            // Inisialisasi elemen flashcard
+            const flashcard = document.getElementById('flashcard');
+            if (flashcard) {
+                flashcard.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        flashcard.classList.toggle('is-flipped');
+                    }
+                });
+            }
+
+            // Tampilkan kartu pertama
+            showFlashcard(currentCardIndex);
+
+            // Tampilkan shortcut keyboard sebentar
+            setTimeout(() => {
+                document.querySelector('.keyboard-shortcuts').classList.add('visible');
+                setTimeout(() => {
+                    document.querySelector('.keyboard-shortcuts').classList.remove('visible');
+                }, 5000);
+            }, 1000);
+            
+            // Muat progress yang disimpan
+            loadProgress();
+            
+            // Update streak
+            updateStreak();
+            
+            // Generate kalimat latihan
+            generatePracticeSentences();
+            
+            // Tombol cetak
+            document.getElementById('printMateriButton').addEventListener('click', () => {
+                showSection('materi');
+                setTimeout(() => window.print(), 500);
+            });
+            
+            document.getElementById('printGrammarButton').addEventListener('click', () => {
+                showSection('tata-bahasa');
+                setTimeout(() => window.print(), 500);
+            });
+        });
+    </script>
 </body>
 </html>
